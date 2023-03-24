@@ -1,0 +1,89 @@
+From 9c8c2dd0276f6e98840cd5aa7df2412989d59e55 Mon Sep 17 00:00:00 2001
+From: alimbaga <limbaga@ualberta.ca>
+Date: Wed, 29 Jun 2022 18:25:52 -0600
+Subject: [PATCH 8/9] copy command outputs
+
+---
+ Makefile     |  2 ++
+ config.def.h |  2 ++
+ st-copyout   | 13 +++++++++++++
+ st.1         |  3 +++
+ 4 files changed, 20 insertions(+)
+ create mode 100644 st-copyout
+
+diff --git a/Makefile b/Makefile
+index cc87e43..b28df0f 100644
+--- a/Makefile
++++ b/Makefile
+@@ -44,6 +44,7 @@ install: st
+ 	mkdir -p $(DESTDIR)$(PREFIX)/bin
+ 	cp -f st $(DESTDIR)$(PREFIX)/bin
+ 	chmod 755 $(DESTDIR)$(PREFIX)/bin/st
++	chmod 755 $(DESTDIR)$(PREFIX)/bin/st-copyout
+ 	chmod 755 $(DESTDIR)$(PREFIX)/bin/st-urlhandler
+ 	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
+ 	sed "s/VERSION/$(VERSION)/g" < st.1 > $(DESTDIR)$(MANPREFIX)/man1/st.1
+@@ -53,6 +54,7 @@ install: st
+ 
+ uninstall:
+ 	rm -f $(DESTDIR)$(PREFIX)/bin/st
++	rm -f $(DESTDIR)$(PREFIX)/bin/st-copyout
+ 	rm -f $(DESTDIR)$(PREFIX)/bin/st-urlhandler
+ 	rm -f $(DESTDIR)$(MANPREFIX)/man1/st.1
+ 
+diff --git a/config.def.h b/config.def.h
+index 4bcd1b2..f4715fa 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -184,6 +184,7 @@ static MouseShortcut mshortcuts[] = {
+ 
+ static char *openurlcmd[] = { "/bin/sh", "-c", "st-urlhandler -o", "externalpipe", NULL };
+ static char *copyurlcmd[] = { "/bin/sh", "-c", "st-urlhandler -c", "externalpipe", NULL };
++static char *copyoutput[] = { "/bin/sh", "-c", "st-copyout", "externalpipe", NULL };
+ 
+ static Shortcut shortcuts[] = {
+ 	/* mask                 keysym          function        argument */
+@@ -213,6 +214,7 @@ static Shortcut shortcuts[] = {
+ 	{ MODKEY,               XK_d,           kscrolldown,    {.i = -1} },
+ 	{ MODKEY,               XK_l,           externalpipe,   {.v = openurlcmd } },
+ 	{ MODKEY,               XK_y,           externalpipe,   {.v = copyurlcmd } },
++	{ MODKEY,               XK_o,           externalpipe,   {.v = copyoutput } },
+ };
+ 
+ /*
+diff --git a/st-copyout b/st-copyout
+new file mode 100644
+index 0000000..0d19e5a
+--- /dev/null
++++ b/st-copyout
+@@ -0,0 +1,13 @@
++#!/bin/sh
++# Using external pipe with st, give a dmenu prompt of recent commands,
++# allowing the user to copy the output of one.
++# xclip required for this script.
++# By Jaywalker and Luke
++tmpfile=$(mktemp /tmp/st-cmd-output.XXXXXX)
++trap 'rm "$tmpfile"' 0 1 15
++sed -n "w $tmpfile"
++sed -i 's/\x0//g' "$tmpfile"
++ps1="$(grep "\S" "$tmpfile" | tail -n 1 | sed 's/^\s*//' | cut -d' ' -f1)"
++chosen="$(grep -F "$ps1" "$tmpfile" | sed '$ d' | tac | dmenu -p "Copy which command's output?" -i -l 10 | sed 's/[^^]/[&]/g; s/\^/\\^/g')"
++eps1="$(echo "$ps1" | sed 's/[^^]/[&]/g; s/\^/\\^/g')"
++awk "/^$chosen$/{p=1;print;next} p&&/$eps1/{p=0};p" "$tmpfile" | xclip -selection clipboard
+diff --git a/st.1 b/st.1
+index 8c22622..5627f29 100644
+--- a/st.1
++++ b/st.1
+@@ -177,6 +177,9 @@ Opens dmenu to provide url list that can be opened on browser
+ .TP
+ .B Alt-y
+ Opens dmenu to provide url that can be copied to clipboard
++.TP
++.B Alt-o
++Opens dmenu to copy previous command's output
+ .SH CUSTOMIZATION
+ .B st
+ can be customized by creating a custom config.h and (re)compiling the source
+-- 
+2.37.0
+

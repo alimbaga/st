@@ -1,0 +1,45 @@
+From 1bcc94629159614c0f5a4635b520502f2c346a8f Mon Sep 17 00:00:00 2001
+From: alimbaga <limbaga@ualberta.ca>
+Date: Wed, 29 Jun 2022 17:47:42 -0600
+Subject: [PATCH 5/9] remap copy and paste shortcuts
+
+---
+ config.def.h | 4 ++--
+ st.1         | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/config.def.h b/config.def.h
+index d856984..6360408 100644
+--- a/config.def.h
++++ b/config.def.h
+@@ -193,8 +193,8 @@ static Shortcut shortcuts[] = {
+ 	{ TERMMOD,              XK_K,           zoom,           {.f = +1} },
+ 	{ TERMMOD,              XK_J,           zoom,           {.f = -1} },
+ 	{ TERMMOD,              XK_Home,        zoomreset,      {.f =  0} },
+-	{ TERMMOD,              XK_C,           clipcopy,       {.i =  0} },
+-	{ TERMMOD,              XK_V,           clippaste,      {.i =  0} },
++	{ MODKEY,               XK_c,           clipcopy,       {.i =  0} },
++	{ MODKEY,               XK_v,           clippaste,      {.i =  0} },
+ 	{ TERMMOD,              XK_Y,           selpaste,       {.i =  0} },
+ 	{ ShiftMask,            XK_Insert,      selpaste,       {.i =  0} },
+ 	{ TERMMOD,              XK_Num_Lock,    numlock,        {.i =  0} },
+diff --git a/st.1 b/st.1
+index d467262..94c22e7 100644
+--- a/st.1
++++ b/st.1
+@@ -154,10 +154,10 @@ Reset to default font size.
+ .B Ctrl-Shift-y
+ Paste from primary selection (middle mouse button).
+ .TP
+-.B Ctrl-Shift-c
++.B Alt-c
+ Copy the selected text to the clipboard selection.
+ .TP
+-.B Ctrl-Shift-v
++.B Alt-v
+ Paste from the clipboard selection.
+ .TP
+ .B Alt-k / Alt-Up
+-- 
+2.37.0
+
